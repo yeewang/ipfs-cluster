@@ -191,14 +191,14 @@ func NewConnector(cfg *Config) (*Connector, error) {
 	}
 
 	smux.Handle("/", proxyHandler)
-	smux.HandleFunc("/api/v0/pin/add/", ipfs.pinHandler)
-	smux.HandleFunc("/api/v0/pin/rm/", ipfs.unpinHandler)
-	smux.HandleFunc("/api/v0/pin/ls", ipfs.pinLsHandler) // required to handle /pin/ls for all pins
-	smux.HandleFunc("/api/v0/pin/ls/", ipfs.pinLsHandler)
+	smux.HandleFunc("/api/v0/pin/add", ipfs.pinHandler)   // add?arg=xxx
+	smux.HandleFunc("/api/v0/pin/add/", ipfs.pinHandler)  // add/xxx
+	smux.HandleFunc("/api/v0/pin/rm", ipfs.unpinHandler)  // rm?arg=xxx
+	smux.HandleFunc("/api/v0/pin/rm/", ipfs.unpinHandler) // rm/xxx
+	smux.HandleFunc("/api/v0/pin/ls", ipfs.pinLsHandler)  // required to handle /pin/ls for all pins
+	smux.HandleFunc("/api/v0/pin/ls/", ipfs.pinLsHandler) // ls/xxx
 	smux.HandleFunc("/api/v0/add", ipfs.addHandler)
-	smux.HandleFunc("/api/v0/add/", ipfs.addHandler)
 	smux.HandleFunc("/api/v0/repo/stat", ipfs.repoStatHandler)
-	smux.HandleFunc("/api/v0/repo/stat/", ipfs.repoStatHandler)
 
 	go ipfs.run()
 	return ipfs, nil
@@ -328,7 +328,7 @@ func (ipfs *Connector) pinLsHandler(w http.ResponseWriter, r *http.Request) {
 			Type: "recursive",
 		}
 	} else {
-		var pins []api.PinSerial
+		pins := make([]api.PinSerial, 0)
 		err := ipfs.rpcClient.Call(
 			"",
 			"Cluster",
@@ -429,7 +429,7 @@ func (ipfs *Connector) addHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ipfs *Connector) repoStatHandler(w http.ResponseWriter, r *http.Request) {
-	var peers []peer.ID
+	peers := make([]peer.ID, 0)
 	err := ipfs.rpcClient.Call(
 		"",
 		"Cluster",
@@ -770,7 +770,7 @@ func (ipfs *Connector) apiURL() string {
 func (ipfs *Connector) ConnectSwarms() error {
 	ctx, cancel := context.WithTimeout(ipfs.ctx, ipfs.config.IPFSRequestTimeout)
 	defer cancel()
-	var idsSerial []api.IDSerial
+	idsSerial := make([]api.IDSerial, 0)
 	err := ipfs.rpcClient.Call(
 		"",
 		"Cluster",
